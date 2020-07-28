@@ -16,6 +16,7 @@ const USER_TYPES = {
       lastName: String,
       type: String,
       emailId: String,
+      image: String,
       password: String
     },
     {
@@ -33,14 +34,29 @@ const USER_TYPES = {
     password
 ) {
   try {
-    const user = await this.create({ firstName, lastName, type, emailId, password });
+    const user = await this.create({ firstName, lastName, type, emailId,image, password });
     return {
         firstName: user.firstName, 
         lastName: user.lastName, 
         type: user.type, 
         emailId: user.emailId,
+        image: user.image,
         id: user._id
     };
+  } catch (error) {
+    throw error;
+  }
+}
+
+userSchema.statics.updateUser = async function (user) {
+  try {
+    const updatedUser = await this.findOneAndUpdate(
+      {_id: user._id},
+      {$set:user},
+      {new:true,
+       useFindAndModify: false}).select("-password");
+    
+    return updatedUser;
   } catch (error) {
     throw error;
   }

@@ -28,6 +28,12 @@ try{
 
              const authToken = jwt.sign(payload, SECRET_KEY);
              req.authToken = authToken;
+             req.user = {
+               userId: user._id,
+               name: `${user.firstName} ${user.lastName}`,
+               email: user.emailId,
+               type: user.type
+             }
              next();
 
           }else{

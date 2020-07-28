@@ -34,6 +34,7 @@ const user = {
                 firstName: { type: types.string },
                 lastName: { type: types.string },
                 emailId: { type: types.string },
+                image: { type: types.string, options: {empty: true}},
                 type: { type: types.enum, options: { enum: USER_TYPES } },
               }
             }));
@@ -42,17 +43,17 @@ const user = {
             // check if user is already exists
             const user = await UserModel.findOne({ emailId: req.body.emailId })
             if(user) {
-                return res.status(400).json({ success: false, error: 'Email is already registered!' });
+                return res.status(400).json({ success: false, message: 'Email is already registered!' });
             }
       
-            const { firstName, lastName, type, emailId, password } = req.body;
+            const { firstName, lastName, type, emailId,image, password } = req.body;
             // hash the password
             var bcrypt = require('bcryptjs');
             bcrypt.genSalt(10, (err, salt) => {
             bcrypt.hash(password, salt, (err, hash) => {
                     if(err) throw err;
                     // password = hash;
-                    UserModel.createUser(firstName, lastName, type,emailId, hash)
+                    UserModel.createUser(firstName, lastName, type,emailId,image, hash)
                     .then(user => {
                         return res.status(200).json({ success: true, user });
                     })
@@ -65,6 +66,38 @@ const user = {
           } catch (error) {
             return res.status(500).json({ success: false, error: error })
           }
+     },
+
+     // PUT ('/:id')
+    // update user
+     onUpdateUser: async (req, res) => {
+      try{
+        const validation = makeValidation(types => ({
+          payload: req.body,
+          checks: {
+            firstName: { type: types.string },
+            lastName: { type: types.string },
+            emailId: { type: types.string },
+            image: { type: types.string, options: {empty: true}},
+            type: { type: types.enum, options: { enum: USER_TYPES } },
+          }
+        }));
+        if (!validation.success) return res.status(400).json(validation);
+
+        const { id } = req.params;
+
+        const user = await UserModel.getUserById(id);
+        user.firstName = req.body.firstName
+        user.lastName = req.body.lastName
+        user.type = req.body.type
+        user.image = req.body.image
+        const updatedUser = await UserModel.updateUser(user);
+        return res.status(200).json({ success: true, user: updatedUser });
+        
+      } 
+      catch (error) {
+            return res.status(500).json({ success: false, error: error })
+        }
      },
 
     // DELETE ('/:id')

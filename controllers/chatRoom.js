@@ -17,18 +17,61 @@ exports.chatRoomController  ={
                   options: { unique: true, empty: false, stringOnly: true } 
                 },
                 type: { type: types.enum, options: { enum: CHAT_ROOM_TYPES } },
+                name: { type: types.string, options: {empty: true}},
+                image: { type: types.string, options: {empty: true}}
               }
             }));
             if (!validation.success) return res.status(400).json({ ...validation });
+
+               // image validation
+              // if(image && typeof(image) !== Buffer) {
+              //   if (!validation.success) return res.status(400).json({ imageError: 'Image type is not allowed' });
+              // }            
         
-            const { userIds, type } = req.body;
+            const { name, image,userIds, type } = req.body;
             const { userId: chatInitiator } = req;
             const allUserIds = [...userIds, chatInitiator];
-            const chatRoom = await ChatRoomModel.initiateChat(allUserIds, type, chatInitiator);
+            const chatRoom = await ChatRoomModel.initiateChat(name, image, allUserIds, type, chatInitiator);
             return res.status(200).json({ success: true, chatRoom });
           } catch (error) {
-            return res.status(500).json({ success: false, error: error })
+            return res.status(500).json({ success: false, message: error })
           }
+     },
+
+     updateRoom: async (req, res) => {
+      try{
+        const validation = makeValidation(types => ({
+          payload: req.body,
+          checks: {
+            userIds: { 
+              type: types.array, 
+              options: { unique: true, empty: false, stringOnly: true } 
+            },
+            type: { type: types.enum, options: { enum: CHAT_ROOM_TYPES } },
+            name: { type: types.string, options: {empty: true}},
+            image: { type: types.string, options: {empty: true}}
+          }
+        }));
+        if (!validation.success) return res.status(400).json({ ...validation });
+
+        // image validation
+        // if(image && typeof(image) !== Buffer) {
+        //   if (!validation.success) return res.status(400).json({ imageError: 'Image type is not allowed' });
+        // }
+
+        const { roomId } = req.params;
+
+        let room = await ChatRoomModel.getChatRoomByRoomId(roomId);
+        room.name = req.body.name
+        room.type = req.body.type
+        room.image = req.body.image
+        const updatedRoom = await ChatRoomModel.updateChatRoom(room);
+        return res.status(200).json({ success: true, room: updatedRoom });
+        
+      } 
+      catch (error) {
+            return res.status(500).json({ success: false, error: error })
+        }
      },
 
      // POST (/:roomId/message)
@@ -56,7 +99,18 @@ exports.chatRoomController  ={
             return res.status(500).json({ success: false, error: error })
           }
     },
-    getRecentConversation: async (req, res) => { },
+
+     // GET ('/')
+    // get recent rooms of user
+    getUserRooms: async (req, res) => {
+      try {
+        const userId = req.userId;
+        const rooms = await ChatRoomModel.getRoomsByUserId(userId);
+        return res.status(200).json({ success: true,  rooms});
+      } catch (error) {
+        return res.status(500).json({ success: false, error: error })
+      }
+     },
 
     // GET ('/:roomId')
     // get messages in chat room
