@@ -61,7 +61,7 @@ exports.chatRoomController  ={
 
         const { roomId } = req.params;
 
-        let room = await ChatRoomModel.getChatRoomByRoomId(roomId);
+        let room = await ChatRoomModel.getChatRoomById(roomId);
         room.name = req.body.name
         room.type = req.body.type
         room.image = req.body.image
@@ -70,7 +70,7 @@ exports.chatRoomController  ={
         
       } 
       catch (error) {
-            return res.status(500).json({ success: false, error: error })
+            return res.status(500).json({ success: false, error: new Error('Something went wrong') })
         }
      },
 
@@ -112,12 +112,25 @@ exports.chatRoomController  ={
       }
      },
 
+     // GET ('/:roomId')
+    // get room by room id
+     getChatRoomById: async (req, res) => {
+      try{
+        const roomId = req.params.roomId;
+        const room = await ChatRoomModel.getChatRoomById(roomId);
+        return res.status(200).json({ success: true,  room});
+      }
+      catch(err) {
+        return res.status(500).json({ success: false, error: error })
+      }
+     },
+
     // GET ('/:roomId')
     // get messages in chat room
     getConversationByRoomId: async (req, res) => { 
         try {
             const { roomId } = req.params;
-            const room = await ChatRoomModel.getChatRoomByRoomId(roomId)
+            const room = await ChatRoomModel.getChatRoomById(roomId)
             if (!room) {
               return res.status(400).json({
                 success: false,

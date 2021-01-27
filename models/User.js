@@ -31,6 +31,7 @@ const USER_TYPES = {
     lastName, 
     type,
     emailId,
+    image,
     password
 ) {
   try {
@@ -77,7 +78,9 @@ userSchema.statics.getUserById = async function (id) {
 userSchema.statics.getUserByEmailId = async function (emailId) {
     try {
       const user = await this.findOne({ emailId });
-      if (!user) throw ({ error: 'No user found' });
+      if (!user) {
+        throw ({ error: 'No user found' })
+      };
       return user;
     } catch (error) {
       throw error;
