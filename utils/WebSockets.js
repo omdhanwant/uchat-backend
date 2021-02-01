@@ -11,32 +11,32 @@ class WebSockets {
           this.users = this.users.filter((user) => user.socketId !== client.id);
       });
       // add identity of user mapped to the socket id
-      client.on("identity", (userId) => {
+      client.on("identity", (user) => {
         this.users.push({
           socketId: client.id,
-          userId: userId,
+          userId: user.userId,
         });
-        console.log(this.users);
+        client.broadcast.emit('active', { user: user.name } );
       });
       // subscribe person to chat & other user as well
-      client.on("subscribe", (room, otherUserId = "") => {
-        console.log("subscribe:");
-        console.log(`Room: ${room}`);
+      client.on("subscribe", ([room,user, otherUserId = ""]) => {
+
         // this.subscribeOtherUser(room, otherUserId);
-        const userSockets = this.users.filter(
-          (user) => user.userId === otherUserId
-        );
-        userSockets.map((userInfo) => {
-          const socketConn = global.io.sockets.connected(userInfo.socketId);
-          if (socketConn) {
-            socketConn.join(room);
-          }
-        });
+        // const userSockets = this.users.filter(
+        //   (user) => user.userId === otherUserId
+        // );
+        // userSockets.map((userInfo) => {
+        //   const socketConn = global.io.sockets.connected(userInfo.socketId);
+        //   if (socketConn) {
+        //     socketConn.join(room);
+        //   }
+        // });
         client.join(room);
+        client.to(room).broadcast.emit('joined', { user: user.name } );
       });
       // mute a chat room
-      client.on("unsubscribe", (room) => {
-
+      client.on("unsubscribe", ([room, user]) => {
+        client.to(room).broadcast.emit('left', { user: user.name } );
         client.leave(room);
       });
     }
