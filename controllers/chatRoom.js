@@ -158,7 +158,7 @@ exports.chatRoomController  ={
     markConversationReadByRoomId: async (req, res) => { 
         try {
             const { roomId } = req.params;
-            const room = await ChatRoomModel.getChatRoomByRoomId(roomId)
+            const room = await ChatRoomModel.getChatRoomById(roomId)
             if (!room) {
               return res.status(400).json({
                 success: false,

@@ -14,6 +14,7 @@ class WebSockets {
       client.on("identity", (user) => {
         this.users.push({
           socketId: client.id,
+          userName: user.name,
           userId: user.userId,
         });
         client.broadcast.emit('active', { user: user.name } );
@@ -32,11 +33,20 @@ class WebSockets {
         //   }
         // });
         client.join(room);
-        client.to(room).broadcast.emit('joined', { user: user.name } );
+
+        
+        client.to(room).broadcast.emit('joined', { user: user } );
+        
+        // get all users joined the room
+        const roomUsers = global.io.socket.clients(room);
+        roomUsers.forEach((user) => {
+          console.log('Username: ' + user.userId);
+          client.to(room).emit('joined users', roomUsers)
+        });
       });
       // mute a chat room
       client.on("unsubscribe", ([room, user]) => {
-        client.to(room).broadcast.emit('left', { user: user.name } );
+        client.to(room).broadcast.emit('left', { user: user } );
         client.leave(room);
       });
     }
